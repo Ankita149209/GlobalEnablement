@@ -1,0 +1,1313 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CTL AI Innovation &amp; Delivery Portal</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg:#0f1419; --panel:#171e29; --panel2:#1e2735; --line:#2a3547;
+    --txt:#e7edf5; --muted:#93a1b5; --accent:#ff7a45; --accent2:#4fc3f7;
+    --green:#31c48d; --yellow:#f7b955; --red:#f26d6d; --purple:#a78bfa;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--txt);font-size:14px}
+  a{color:var(--accent2)}
+  header{background:linear-gradient(90deg,#1a2230,#141b26);padding:14px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  header h1{font-size:18px;margin:0;font-weight:600}
+  header .sub{color:var(--muted);font-size:12px}
+  .badge{background:var(--accent);color:#151515;font-weight:700;border-radius:5px;padding:2px 8px;font-size:11px}
+  nav{display:flex;gap:4px;padding:8px 16px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+  nav button{background:transparent;border:1px solid transparent;color:var(--muted);padding:8px 14px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600}
+  nav button.active{background:var(--panel2);color:var(--txt);border-color:var(--line)}
+  nav button:hover{color:var(--txt)}
+  main{padding:20px;max-width:1400px;margin:0 auto}
+  .view{display:none}
+  .view.active{display:block}
+  h2.section{font-size:16px;margin:0 0 14px;font-weight:600}
+  .grid{display:grid;gap:14px}
+  .kpis{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .kpi .n{font-size:26px;font-weight:700}
+  .kpi .l{color:var(--muted);font-size:12px;margin-top:4px}
+  .kpi.accent .n{color:var(--accent)} .kpi.green .n{color:var(--green)}
+  .kpi.blue .n{color:var(--accent2)} .kpi.purple .n{color:var(--purple)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+  .row{display:flex;gap:16px;flex-wrap:wrap}
+  .col{flex:1;min-width:280px}
+  /* Kanban */
+  .kanban{display:flex;gap:12px;overflow-x:auto;padding-bottom:10px}
+  .kcol{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-width:210px;width:210px;flex-shrink:0;display:flex;flex-direction:column}
+  .kcol h3{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:0;padding:12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+  .kcol .cards{padding:8px;display:flex;flex-direction:column;gap:8px;min-height:40px}
+  .card{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;cursor:pointer;border-left:3px solid var(--accent2)}
+  .card:hover{border-color:var(--accent2)}
+  .card .t{font-weight:600;font-size:13px;line-height:1.3}
+  .card .m{color:var(--muted);font-size:11px;margin-top:6px;display:flex;justify-content:space-between}
+  .card.parent{border-left-color:var(--accent)}
+  .childwrap{margin:6px 0 0 10px;padding-left:8px;border-left:2px dashed var(--line);display:flex;flex-direction:column;gap:6px}
+  .card.child{background:#141b26;border-left:3px solid var(--purple)}
+  .card .sub-count{display:inline-block;background:#3a2440;color:var(--purple);border-radius:10px;font-size:10px;font-weight:700;padding:1px 7px;margin-top:6px}
+  .childnote{font-size:10px;color:var(--muted);margin-top:4px}
+  .pill{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700}
+  .pill.H1{background:#1f3d33;color:var(--green)}
+  .pill.H2{background:#3d3320;color:var(--yellow)}
+  .pill.H3{background:#3a2440;color:var(--purple)}
+  .pill.horizon{border:1px solid var(--line);font-weight:600}
+  .pill.High{background:#432121;color:var(--red)}
+  .pill.Medium{background:#3d3320;color:var(--yellow)}
+  .pill.Low{background:#22303d;color:var(--accent2)}
+  /* Table */
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);font-size:13px}
+  th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.4px;cursor:pointer}
+  tbody tr:hover{background:var(--panel2)}
+  tr.clickable{cursor:pointer}
+  tr.clickable:hover{background:var(--panel2)}
+  /* Controls */
+  input,select,textarea{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:7px;padding:8px 10px;font-size:13px;font-family:inherit;width:100%}
+  textarea{min-height:70px;resize:vertical}
+  label{display:block;color:var(--muted);font-size:12px;margin:10px 0 4px}
+  .btn{background:var(--accent);color:#151515;border:none;border-radius:7px;padding:9px 16px;font-weight:700;cursor:pointer;font-size:13px}
+  .btn:hover{filter:brightness(1.08)}
+  .btn.sec{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
+  .btn.ghost{background:transparent;color:var(--accent2);border:1px solid var(--line)}
+  .btn.sm{padding:5px 10px;font-size:12px}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .toolbar .spacer{flex:1}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .filters select,.filters input{width:auto;min-width:150px}
+  /* Modal */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto;z-index:50}
+  .overlay.open{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:12px;max-width:920px;width:100%;padding:22px}
+  .modal h2{margin:0 0 6px;font-size:18px}
+  .modal .close{float:right;cursor:pointer;color:var(--muted);font-size:20px;border:none;background:none}
+  .kv{display:grid;grid-template-columns:150px 1fr;gap:6px 12px;font-size:13px;margin:10px 0}
+  .kv div:nth-child(odd){color:var(--muted)}
+  .dod{list-style:none;padding:0;margin:8px 0}
+  .dod li{padding:5px 0;display:flex;gap:8px;align-items:center}
+  .metric-box{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:8px}
+  .metric-box .mb{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px}
+  .metric-box .mb .v{font-size:18px;font-weight:700;color:var(--green)}
+  .metric-box .mb .k{color:var(--muted);font-size:11px}
+  .bar{height:8px;background:var(--panel2);border-radius:6px;overflow:hidden;margin-top:6px}
+  .bar > i{display:block;height:100%;background:var(--accent2)}
+  .tabs{display:flex;gap:6px;margin:14px 0;border-bottom:1px solid var(--line)}
+  .tabs button{background:none;border:none;color:var(--muted);padding:8px 12px;cursor:pointer;font-weight:600;border-bottom:2px solid transparent}
+  .tabs button.active{color:var(--txt);border-color:var(--accent)}
+  .tabpane{display:none} .tabpane.active{display:block}
+  .logitem{border-left:2px solid var(--line);padding:0 0 10px 12px;margin-left:4px;position:relative}
+  .logitem:before{content:'';width:8px;height:8px;background:var(--accent2);border-radius:50%;position:absolute;left:-5px;top:3px}
+  .logitem .d{color:var(--muted);font-size:11px}
+  .note{background:#22303d;border:1px solid #2f4a5c;border-radius:8px;padding:10px;color:var(--accent2);font-size:12px;margin-bottom:12px}
+  .warn{background:#3a2a1a;border-color:#5c4530;color:var(--yellow)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:8px}
+  .dot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:4px}
+  canvas{max-width:100%}
+  .small{color:var(--muted);font-size:12px}
+  .rolecard{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:10px}
+  .rolecard h4{margin:0 0 4px;font-size:14px}
+  .tier{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px}
+  .tier.lead{background:#432b14;color:var(--accent)}
+  .tier.champ{background:#22303d;color:var(--accent2)}
+  .tier.sme{background:#1f3d33;color:var(--green)}
+  .footer{color:var(--muted);font-size:11px;text-align:center;padding:20px}
+</style>
+</head>
+<body>
+<header>
+  <span class="badge">CTL AI</span>
+  <div>
+    <h1>AI Innovation &amp; Delivery Portal</h1>
+    <div class="sub">Ideas &rarr; Prioritize &rarr; Commit &rarr; Build &rarr; Validate &rarr; Adopt &rarr; Scale</div>
+
+  </div>
+  <div style="flex:1"></div>
+  <div class="sub" id="dataStatus">Loading...</div>
+</header>
+
+<nav>
+  <button data-view="dashboard" class="active">Dashboard</button>
+  <button data-view="pipeline">Pipeline</button>
+  <button data-view="ideas">Ideas</button>
+  <button data-view="data">Import / Export / Templates</button>
+</nav>
+
+<main>
+  <!-- DASHBOARD -->
+  <section id="view-dashboard" class="view active">
+    <h2 class="section">Innovation Scorecard</h2>
+    <div class="grid kpis" id="kpis"></div>
+
+    <div class="row" style="margin-top:16px">
+      <div class="col panel">
+        <h2 class="section">Adoption Funnel</h2>
+        <canvas id="funnel" height="220"></canvas>
+      </div>
+      <div class="col panel">
+        <h2 class="section">Portfolio by Horizon</h2>
+        <canvas id="horizon" height="220"></canvas>
+        <div class="legend">
+          <span><i class="dot" style="background:var(--green)"></i>H1 Productivity</span>
+          <span><i class="dot" style="background:var(--yellow)"></i>H2 Workflow AI</span>
+          <span><i class="dot" style="background:var(--purple)"></i>H3 Transformation</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 class="section">Top Impact Ideas (by hours saved / year)</h2>
+      <table id="topTable"><thead><tr>
+        <th>Idea</th><th>Owner</th><th>Stage</th><th>Hrs saved/yr</th><th>Adoption</th>
+      </tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <!-- PIPELINE -->
+  <section id="view-pipeline" class="view">
+    <h2 class="section">Delivery Pipeline</h2>
+    <div class="note">Click any card to open full context. All ideas start in <b>Backlog</b> &mdash; move them along the pipeline as they progress on the call.</div>
+    <div class="kanban" id="kanban"></div>
+
+  </section>
+
+  <!-- IDEAS -->
+  <section id="view-ideas" class="view">
+    <div class="toolbar">
+      <h2 class="section" style="margin:0">Idea Portfolio</h2>
+      <div class="spacer"></div>
+      <button class="btn" onclick="openEditor()">+ New Idea</button>
+    </div>
+    <div class="filters">
+      <input id="fSearch" placeholder="Search..." oninput="renderIdeas()" />
+      <select id="fStage" onchange="renderIdeas()"></select>
+      <select id="fDomain" onchange="renderIdeas()"></select>
+      <select id="fHorizon" onchange="renderIdeas()"></select>
+      <select id="fOwner" onchange="renderIdeas()"></select>
+    </div>
+    <div class="panel" style="padding:0;overflow-x:auto">
+      <table id="ideasTable"><thead><tr>
+        <th onclick="sortBy('id')">ID</th>
+        <th onclick="sortBy('title')">Idea</th>
+        <th onclick="sortBy('owner')">Owner</th>
+        <th onclick="sortBy('domain')">Domain</th>
+        <th onclick="sortBy('horizon')">Horizon</th>
+        <th onclick="sortBy('stage')">Stage</th>
+        <th onclick="sortBy('priority')">Priority</th>
+        <th onclick="sortBy('score')">Score</th>
+        <th onclick="sortBy('dueDate')">Due</th>
+      </tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <!-- PEOPLE -->
+  <!--<section id="view-people" class="view">
+    <h2 class="section">People &amp; Operating Model</h2>
+    <div class="row">
+      <div class="col panel">
+        <h2 class="section">Participation Tiers</h2>
+        <div class="rolecard"><h4>AI Leads <span class="tier lead">LEAD</span></h4><div class="small">Own delivery of AI experiments: identify, build prototypes, run demos, document results, drive adoption. ~10-15% capacity.</div></div>
+        <div class="rolecard"><h4>AI Champions <span class="tier champ">CHAMPION</span></h4><div class="small">Identify process pain points, experiment with Cline/Cursor, contribute ideas, test solutions, give feedback. ~5% capacity.</div></div>
+        <div class="rolecard"><h4>SMEs <span class="tier sme">SME</span></h4><div class="small">Validate solutions against real processes; confirm accuracy, quality and fit.</div></div>
+        <div class="rolecard"><h4>AI Users</h4><div class="small">Everyone else: use the solutions, provide feedback, adopt successful workflows.</div></div>
+        <div class="rolecard"><h4>Leadership Sponsor</h4><div class="small">Unblocks, allocates capacity, reviews monthly, champions US&harr;Canada exchange.</div></div>
+      </div>
+      <div class="col panel">
+        <h2 class="section">Owners &amp; What They Drive</h2>
+        <table id="peopleTable"><thead><tr><th>Owner</th><th>Ideas</th><th>Active stages</th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+    <div class="panel">
+      <h2 class="section">Teams &amp; Members</h2>
+      <div class="small" style="margin-bottom:10px">One row per idea &mdash; the <b>Owner</b> is the idea owner. Click <b>Edit</b> to add team members (or add them in the workbook's <b>Team Members</b> column, one name per line). Members flow into the <b>Teams</b> tab of the Excel export.</div>
+      <table id="teamsTable"><thead><tr><th>Idea</th><th>Owner</th><th>Team</th><th>Members</th><th></th></tr></thead><tbody></tbody></table>
+      <div class="toolbar" style="margin-top:14px">
+        <input id="newTeamName" placeholder="New team name" style="max-width:220px"/>
+        <input id="newTeamLead" placeholder="Lead (optional)" style="max-width:200px"/>
+        <button class="btn sm" onclick="addTeam()">+ Add team</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h2 class="section">Operating Cadence</h2>
+      <div class="kv">
+        <div>Weekly</div><div><b>AI Delivery Stand-up (30 min)</b> &mdash; portfolio counts, each owner: done / next / blocker, adoption, decisions.</div>
+        <div>Monthly</div><div><b>AI Innovation Review + Demo Day</b> &mdash; pipeline &rarr; results &rarr; ROI &rarr; decisions; each active team demos something real.</div>
+        <div>Quarterly</div><div><b>AI Showcase &amp; US&harr;Canada Exchange</b> &mdash; what we built, value created, reusable assets, what to borrow/share.</div>
+      </div>
+    </div>
+  </section>-->
+
+  <!-- DATA -->
+  <section id="view-data" class="view">
+    <h2 class="section">Import / Export / Templates</h2>
+    <div class="note">Workflow: teams fill the template &rarr; you <b>Import</b> once &rarr; review merge &rarr; <b>Export JSON</b> &rarr; save as <code>data/ideas.json</code> &rarr; commit to Git. The portal always reads the committed JSON on open.</div>
+    <div class="row">
+      <div class="col panel">
+        <h2 class="section">1. Templates (for teams)</h2>
+        <p class="small">Give teams this one workbook. They fill the <b>Ideas</b> &amp; <b>Metrics</b> tabs (Progress Log optional) and send it back.</p>
+        <button class="btn" onclick="downloadExcelTemplate()">Download Excel Template (.xlsx)</button>
+        <button class="btn sec" onclick="downloadCsv('ideas')">CSV: Ideas</button>
+        <button class="btn sec" onclick="downloadCsv('metrics')">CSV: Metrics</button>
+      </div>
+      <div class="col panel">
+        <h2 class="section">2. Import (you)</h2>
+        <p class="small">Import a team file (.xlsx/.csv) or a full backup (.json). Imports <b>merge</b> by ID/Title &mdash; you'll see a preview before applying.</p>
+        <input type="file" id="importFile" accept=".xlsx,.xls,.csv,.json" />
+        <div id="importPreview" style="margin-top:10px"></div>
+      </div>
+      <div class="col panel">
+        <h2 class="section">3. Export &amp; Save (you)</h2>
+        <p class="small">Export the master, then commit <code>data/ideas.json</code> to Git so everyone sees the update.</p>
+        <button class="btn" onclick="exportJson()">Export JSON (master)</button>
+        <button class="btn sec" onclick="exportExcel()">Export Excel (all data)</button>
+        <br/><br/>
+        <button class="btn sec" onclick="connectSeedFile()">Connect data/ideas.json (auto-save)</button>
+        <div id="saveStatus" class="small" style="margin-top:6px"></div>
+        <p class="small" style="margin-top:8px">One-time connect (Chrome/Edge). After connecting, every edit auto-writes <code>data/ideas.json</code> &mdash; then just commit it to Git.</p>
+        <br/>
+        <button class="btn ghost" onclick="resetToSeed()">Reset to seed data</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">CTL AI Innovation &amp; Delivery Program &bull; v1.0 &bull; Data is stored in your browser (localStorage) until you export &amp; commit to Git.</div>
+</main>
+
+<!-- IDEA DETAIL / EDITOR MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+/* ============ SEED DATA (fallback so double-click open always works) ============ */
+const SEED = {
+  "meta": {
+    "program": "CTL AI Innovation & Delivery Program",
+    "version": "1.0",
+    "lastUpdated": "2026-09-08",
+    "note": "Shared source of truth. All ideas start in Backlog. Fields needing team input (status, next step, updates, due date, SME, champions, all metrics, blockers) are intentionally EMPTY - fill them live on the call, then Export JSON, overwrite this file, and commit to Git."
+  },
+  "ideas": [
+    {
+      "id": "IDEA-001",
+      "title": "Salesforce Story Analyzer & Cline Prompt Builder",
+      "owner": "Sudheesh",
+      "team": "SF Delivery Lifecycle",
+      "parent": "IDEA-011",
+      "domain": "Delivery Lifecycle",
+      "horizon": "H2 Workflow AI",
+      "stage": "Backlog",
+      "priority": "Medium",
+      "sme": "",
+      "champions": "",
+      "tools": "ChatGPT Project, Cline",
+      "dueDate": "",
+      "nextStep": "",
+      "updates": "",
+      "description": "A ChatGPT Project that converts user story XML files into precise, development-ready outputs for Salesforce. It analyzes acceptance criteria, identifies gaps and risks, and generates a Cline prompt for local-only implementation aligned with PMD rules, naming conventions, and development standards - reducing ambiguity and accelerating delivery.",
+      "currentState": "Developers manually read stories, interpret AC, and hand-write prompts; ambiguity causes rework.",
+      "futureState": "Story XML in -> gap analysis + risks + ready Cline prompt out, standards-aligned.",
+      "governance": { "dataSensitivity": "", "securityReviewed": false, "humanInLoop": true, "approvedToPilot": false },
+      "score": { "value": 0, "feasibility": 0, "data": 0, "risk": 0, "adoption": 0, "scalability": 0, "differentiation": 0 },
+      "metrics": { "hoursBefore": 0, "hoursAfter": 0, "runsPerMonth": 0, "usersImpacted": 0, "cycleBefore": 0, "cycleAfter": 0, "errorBefore": 0, "errorAfter": 0, "targetUsers": 0, "activeUsers": 0, "rate": 30 },
+      "log": [ { "date": "2026-09-08", "stage": "Backlog", "note": "Captured from backlog.", "blocker": "", "by": "Program Lead" } ]
+    },
+    {
+      "id": "IDEA-002",
+      "title": "AC CTL Team Portal",
+      "owner": "Harish",
+      "team": "Enablement",
+      "domain": "Beyond-SF",
+      "horizon": "H1 Productivity",
+      "stage": "Backlog",
+      "priority": "Medium",
+      "sme": "",
+      "champions": "",
+      "tools": "Cursor, Web",
+      "dueDate": "",
+      "nextStep": "",
+      "updates": "",
+      "description": "Team Portal for CTL team, which publishes all the events, teams and opportunities with RFPs and collaboration requests and any forms on initiatives needed.",
+      "currentState": "Info scattered across emails/chats; no single place for events, RFPs, collaboration.",
+      "futureState": "Central CTL portal for events, opportunities, RFPs, and forms.",
+      "governance": { "dataSensitivity": "", "securityReviewed": false, "humanInLoop": true, "approvedToPilot": false },
+      "score": { "value": 0, "feasibility": 0, "data": 0, "risk": 0, "adoption": 0, "scalability": 0, "differentiation": 0 },
+      "metrics": { "hoursBefore": 0, "hoursAfter": 0, "runsPerMonth": 0, "usersImpacted": 0, "cycleBefore": 0, "cycleAfter": 0, "errorBefore": 0, "errorAfter": 0, "targetUsers": 0, "activeUsers": 0, "rate": 30 },
+      "log": [ { "date": "2026-09-08", "stage": "Backlog", "note": "Captured from backlog.", "blocker": "", "by": "Program Lead" } ]
+    },
+    {
+      "id": "IDEA-003",
+      "title": "Cline -> Lucidchart AI Process Mapping",
+      "owner": "Vanya",
+      "team": "Delivery Lifecycle",
+      "domain": "Delivery Lifecycle",
+      "horizon": "H1 Productivity",
+      "stage": "Backlog",
+      "priority": "Medium",
+      "sme": "",
+      "champions": "",
+      "tools": "Cline, Lucidchart AI",
+      "dueDate": "",
+      "nextStep": "",
+      "updates": "",
+      "description": "Use Cline to generate a step-by-step process outline that can be imported into Lucidchart AI, as this approach produces more effective process maps than directly requesting visual flow diagrams from Cline.",
+      "currentState": "Manual process mapping; direct AI diagrams are low quality.",
+      "futureState": "Cline-generated structured steps feed Lucidchart AI for better maps.",
+      "governance": { "dataSensitivity": "", "securityReviewed": false, "humanInLoop": true, "approvedToPilot": false },
+      "score": { "value": 0, "feasibility": 0, "data": 0, "risk": 0, "adoption": 0, "scalability": 0, "differentiation": 0 },
+      "metrics": { "hoursBefore": 0, "hoursAfter": 0, "runsPerMonth": 0, "usersImpacted": 0, "cycleBefore": 0, "cycleAfter": 0, "errorBefore": 0, "errorAfter": 0, "targetUsers": 0, "activeUsers": 0, "rate": 30 },
+      "log": [ { "date": "2026-09-08", "stage": "Backlog", "note": "Captured from backlog.", "blocker": "", "by": "Program Lead" } ]
+    },
+    {
+      "id": "IDEA-004",
+      "title": "AI Code Review Assistant",
+      "owner": "Akshada",
+      "team": "Salesforce Eng",
+      "domain": "Salesforce",
+      "horizon": "H2 Workflow AI",
+      "stage": "Backlog",
+      "priority": "Medium",
+      "sme": "",
+      "champions": "",
+      "tools": "Cline, Salesforce Code Analyzer",
+      "dueDate": "",
+      "nextStep": "",
+      "updates": "",
+      "description": "Currently Salesforce code reviews are manual, time-consuming, and inconsistent across teams. Developers may miss governor-limit, security, and best-practice issues. This AI code review assistant scans Salesforce code using Salesforce Code Analyzer and uses AI (Cline) to explain findings, suggest fixes, and comment on pull requests. Reviews Apex, LWC, SOQL, triggers, flows, and metadata before pull requests are merged.",
+      "currentState": "Manual, inconsistent reviews; issues slip through.",
+      "futureState": "Automated AI-assisted review with explanations and fix suggestions on PRs.",
+      "governance": { "dataSensitivity": "", "securityReviewed": false, "humanInLoop": true, "approvedToPilot": false },
+      "score": { "value": 0, "feasibility": 0, "data": 0, "risk": 0, "adoption": 0, "scalability": 0, "differentiation": 0 },
+      "metrics": { "hoursBefore": 0, "hoursAfter": 0, "runsPerMonth": 0, "usersImpacted": 0, "cycleBefore": 0, "cycleAfter": 0, "errorBefore": 0, "errorAfter": 0, "targetUsers": 0, "activeUsers": 0, "rate": 30 },
+      "log": [ { "date": "2026-09-08", "stage": "Backlog", "note": "Captured from backlog. Possible overlap with IDEA-015 (confirm on call).", "blocker": "", "by": "Program Lead" } ]
+    },
+    {
+      "id": "IDEA-005",
+      "title": "AI-Powered HL Solutioning Agent from Client Docs",
+      "owner": "Sukamal",
+      "team": "Delivery Lifecycle",
+      "parent": "IDEA-011",
+      "domain": "Delivery Lifecycle",
+      "horizon": "H3 Transformation",
+      "stage": "Backlog",
+      "priority": "Medium",
+      "sme": "",
+      "champions": "",
+      "tools": "Cline, LLM",
+      "dueDate": "",
+      "nextStep": "",
+      "updates": "",
+      "description": "A Cline workflow that reads all locally stored client engagement files - workshop transcripts, requirements CSVs, pain points, KPIs, data migration docs, and TDDs - and uses a structured prompt to automatically generate a High-Level Solution in a specified output format (e.g. .csv). It cross-references client pain points with Salesforce capabilities, groups findings into epics, and produces HL user stories with effort estimates and dependency flags - ready for sprint planning.",
+      "currentState": "Solution architects manually synthesize many documents into HL solutions.",
+      "futureState": "Agent produces HL solution, epics, stories, estimates, dependencies from docs.",
+      "governance": { "dataSensitivity": "", "securityReviewed": false, "humanInLoop": true, "approvedToPilot": false },
+      "score": { "value": 0, "feasibility": 0, "data": 0, "risk": 0, "adoption": 0, "scalability": 0, "differentiation": 0 },
+      "metrics": { "hoursBefore": 0, "hoursAfter": 0, "runsPerMonth": 0, "usersImpacted": 0, "cycleBefore": 0, "cycleAfter": 0, "errorBefore": 0, "errorAfter": 0, "targetUsers": 0, "activeUsers": 0, "rate": 30 },
+      "log": [ { "date": "2026-09-08", "stage": "Backlog", "note": "Captured from backlog.", "blocker": "", "by": "Program Lead" } ]
+    },
+    {
+      "id": "IDEA-007",
+      "title": "Generate Test Cases from Grooming Transcript",
+      "owner": "Somashekhar",
+      "team": "QA / Delivery",
+      "parent": "IDEA-011",
+      "domain": "Delivery Lifecycle",
+      "horizon": "H1 Productivity",
+      "stage": "Backlog",
+      "priority": "Medium",
+      "sme": "",
+      "champions": "",
+      "tools": "Cline",
+      "dueDate": "",
+      "nextStep": "",
+      "updates": "",
+      "description": "Since we already create test cases using the story description and acceptance criteria, we can also leverage the sprint grooming transcript alongside the story AC to generate more comprehensive and accurate test cases.",
+      "currentState": "Test cases from story/AC only; misses context discussed in grooming.",
+      "futureState": "Transcript + AC -> richer, more accurate test cases.",
+      "governance": { "dataSensitivity": "", "securityReviewed": false, "humanInLoop": true, "approvedToPilot": false },
+      "score": { "value": 0, "feasibility": 0, "data": 0, "risk": 0, "adoption": 0, "scalability": 0, "differentiation": 0 },
+      "metrics": { "hoursBefore": 0, "hoursAfter": 0, "runsPerMonth": 0, "usersImpacted": 0, "cycleBefore": 0, "cycleAfter": 0, "errorBefore": 0, "errorAfter": 0, "targetUsers": 0, "activeUsers": 0, "rate": 30 },
+      "log": [ { "date": "2026-09-08", "stage": "Backlog", "note": "Captured from backlog.", "blocker": "", "by": "Program Lead" } ]
+    },
+    {
+      "id": "IDEA-008",
+      "title": "Spec-Driven Payload Generator & Boomi Regression Framework",
+      "owner": "Jeetu",
+      "team": "Integration (Beyond-SF)",
+      "domain": "Beyond-SF",
+      "horizon": "H2 Workflow AI",
+      "stage": "Backlog",
+      "priority": "Medium",
+      "sme": "",
+      "champions": "",
+      "tools": "Cline, Boomi",
+      "dueDate": "",
+      "nextStep": "",
+      "updates": "",
+      "description": "Develop a reusable Boomi testing framework that reads a standardized mapping document (spec) and Boomi source/target profiles to automatically generate test payloads across multiple scenarios - happy path, boundary values, missing required fields, invalid formats, enum violations, special characters, and lookup hit/miss cases. The framework executes payloads through the relevant Boomi mapping/integration process, validates results (schema/profile validation + rule assertions and/or golden-file comparison), and produces a consolidated pass/fail report with error details and correlation IDs. Creates a repeatable regression suite that accelerates testing and improves mapping quality.",
+      "currentState": "Manual, ad-hoc integration test payloads; inconsistent coverage.",
+      "futureState": "Spec-driven auto-generated payloads + automated regression + reports.",
+      "governance": { "dataSensitivity": "", "securityReviewed": false, "humanInLoop": true, "approvedToPilot": false },
+      "score": { "value": 0, "feasibility": 0, "data": 0, "risk": 0, "adoption": 0, "scalability": 0, "differentiation": 0 },
+      "metrics": { "hoursBefore": 0, "hoursAfter": 0, "runsPerMonth": 0, "usersImpacted": 0, "cycleBefore": 0, "cycleAfter": 0, "errorBefore": 0, "errorAfter": 0, "targetUsers": 0, "activeUsers": 0, "rate": 30 },
+      "log": [ { "date": "2026-09-08", "stage": "Backlog", "note": "Captured from backlog.", "blocker": "", "by": "Program Lead" } ]
+    },
+    {
+      "id": "IDEA-009",
+      "title": "AI Prompt Library",
+      "owner": "Sangeeta",
+      "team": "Enablement",
+      "parent": "",
+      "domain": "Enablement",
+      "horizon": "H1 Productivity",
+      "stage": "Backlog",
+      "priority": "Medium",
+      "sme": "",
+      "champions": "",
+      "tools": "Cline, Cursor, ChatGPT",
+      "dueDate": "",
+      "nextStep": "",
+      "updates": "",
+      "description": "Create a central library of ready-to-use AI prompts for common tasks like writing user stories, test cases, and helping with code logic or debugging, summaries, and reports. This library will provide simple, structured prompts with clear inputs and expected outputs so that anyone can use AI effectively. It will be easy to access and can be improved over time based on feedback. This will save time, improve consistency, and make AI usage more practical across teams.",
+      "currentState": "Everyone writes prompts from scratch; inconsistent results.",
+      "futureState": "Central, curated, structured prompt library with inputs/outputs.",
+      "governance": { "dataSensitivity": "", "securityReviewed": false, "humanInLoop": true, "approvedToPilot": false },
+      "score": { "value": 0, "feasibility": 0, "data": 0, "risk": 0, "adoption": 0, "scalability": 0, "differentiation": 0 },
+      "metrics": { "hoursBefore": 0, "hoursAfter": 0, "runsPerMonth": 0, "usersImpacted": 0, "cycleBefore": 0, "cycleAfter": 0, "errorBefore": 0, "errorAfter": 0, "targetUsers": 0, "activeUsers": 0, "rate": 30 },
+      "log": [ { "date": "2026-09-08", "stage": "Backlog", "note": "Captured from backlog.", "blocker": "", "by": "Program Lead" } ]
+    },
+    {
+      "id": "IDEA-010",
+      "title": "Cline Rules & Workflows for Development",
+      "owner": "Debanjoly",
+      "team": "Salesforce Eng",
+      "parent": "IDEA-009",
+      "domain": "Salesforce",
+      "horizon": "H1 Productivity",
+      "stage": "Backlog",
+      "priority": "Medium",
+      "sme": "",
+      "champions": "",
+      "tools": "Cline",
+      "dueDate": "",
+      "nextStep": "",
+      "updates": "",
+      "description": "For faster metadata generation with zero to minimal syntax errors (Cline sometimes generates metadata irrelevant to Salesforce), which keeps in mind a specific project's code standard, personal preferences of naming conventions for variables/files, error handling, and generates plans faster with less input in prompts for each new task.",
+      "currentState": "Cline output needs heavy correction; inconsistent standards.",
+      "futureState": "Project-aware Cline rules/workflows produce standards-aligned metadata fast.",
+      "governance": { "dataSensitivity": "", "securityReviewed": false, "humanInLoop": true, "approvedToPilot": false },
+      "score": { "value": 0, "feasibility": 0, "data": 0, "risk": 0, "adoption": 0, "scalability": 0, "differentiation": 0 },
+      "metrics": { "hoursBefore": 0, "hoursAfter": 0, "runsPerMonth": 0, "usersImpacted": 0, "cycleBefore": 0, "cycleAfter": 0, "errorBefore": 0, "errorAfter": 0, "targetUsers": 0, "activeUsers": 0, "rate": 30 },
+      "log": [ { "date": "2026-09-08", "stage": "Backlog", "note": "Captured from backlog.", "blocker": "", "by": "Program Lead" } ]
+    },
+    {
+      "id": "IDEA-011",
+      "title": "Delivery Intelligence Hub",
+      "owner": "Ankita",
+      "team": "Delivery Lifecycle",
+      "domain": "Delivery Lifecycle",
+      "horizon": "H3 Transformation",
+      "stage": "Backlog",
+      "priority": "Medium",
+      "sme": "",
+      "champions": "",
+      "tools": "Cline, LLM",
+      "dueDate": "",
+      "nextStep": "",
+      "updates": "",
+      "description": "An AI-powered Delivery Intelligence Hub that supports the entire sprint lifecycle: Requirement clarity (Requirement Drift), Reusing organizational knowledge (Knowledge Miner), Simulating sprint execution, Write Story, Generate Test Case modules, and Generating executive-level insights.",
+      "currentState": "Fragmented tools across the sprint lifecycle; knowledge not reused.",
+      "futureState": "Unified hub spanning requirements -> stories -> tests -> insights.",
+      "governance": { "dataSensitivity": "", "securityReviewed": false, "humanInLoop": true, "approvedToPilot": false },
+      "score": { "value": 0, "feasibility": 0, "data": 0, "risk": 0, "adoption": 0, "scalability": 0, "differentiation": 0 },
+      "metrics": { "hoursBefore": 0, "hoursAfter": 0, "runsPerMonth": 0, "usersImpacted": 0, "cycleBefore": 0, "cycleAfter": 0, "errorBefore": 0, "errorAfter": 0, "targetUsers": 0, "activeUsers": 0, "rate": 30 },
+      "log": [ { "date": "2026-09-08", "stage": "Backlog", "note": "Captured from backlog.", "blocker": "", "by": "Program Lead" } ]
+    },
+    {
+      "id": "IDEA-012",
+      "title": "Collaborative Pre-Sprint Review",
+      "owner": "Thejaswini S",
+      "team": "QA / BA",
+      "parent": "IDEA-011",
+      "domain": "Delivery Lifecycle",
+      "horizon": "H2 Workflow AI",
+      "stage": "Backlog",
+      "priority": "Medium",
+      "sme": "",
+      "champions": "",
+      "tools": "Cline",
+      "dueDate": "",
+      "nextStep": "",
+      "updates": "",
+      "description": "Use Cline to scan and upload a user story before the sprint starts, so we can highlight missing scenarios, ambiguity conflicts, suggested acceptance criteria, and test cases, and keep a pre-sprint checkpoint. BA explains story, QA lists test scenarios live, Dev identifies technical risks, and Cline validates gaps instantly.",
+      "currentState": "Gaps found mid-sprint; rework and delays.",
+      "futureState": "Pre-sprint AI-assisted gap check with BA/QA/Dev in the room.",
+      "governance": { "dataSensitivity": "", "securityReviewed": false, "humanInLoop": true, "approvedToPilot": false },
+      "score": { "value": 0, "feasibility": 0, "data": 0, "risk": 0, "adoption": 0, "scalability": 0, "differentiation": 0 },
+      "metrics": { "hoursBefore": 0, "hoursAfter": 0, "runsPerMonth": 0, "usersImpacted": 0, "cycleBefore": 0, "cycleAfter": 0, "errorBefore": 0, "errorAfter": 0, "targetUsers": 0, "activeUsers": 0, "rate": 30 },
+      "log": [ { "date": "2026-09-08", "stage": "Backlog", "note": "Captured from backlog.", "blocker": "", "by": "Program Lead" } ]
+    },
+    {
+      "id": "IDEA-013",
+      "title": "(Placeholder - to be defined)",
+      "owner": "Sahiya",
+      "team": "",
+      "domain": "Enablement",
+      "horizon": "H1 Productivity",
+      "stage": "Backlog",
+      "priority": "Low",
+      "sme": "",
+      "champions": "",
+      "tools": "",
+      "dueDate": "",
+      "nextStep": "",
+      "updates": "",
+      "description": "Placeholder entry from the original backlog. Owner to provide a process/problem to solve.",
+      "currentState": "",
+      "futureState": "",
+      "governance": { "dataSensitivity": "", "securityReviewed": false, "humanInLoop": true, "approvedToPilot": false },
+      "score": { "value": 0, "feasibility": 0, "data": 0, "risk": 0, "adoption": 0, "scalability": 0, "differentiation": 0 },
+      "metrics": { "hoursBefore": 0, "hoursAfter": 0, "runsPerMonth": 0, "usersImpacted": 0, "cycleBefore": 0, "cycleAfter": 0, "errorBefore": 0, "errorAfter": 0, "targetUsers": 0, "activeUsers": 0, "rate": 30 },
+      "log": [ { "date": "2026-09-08", "stage": "Backlog", "note": "Placeholder captured from backlog - details to be defined on call.", "blocker": "", "by": "Program Lead" } ]
+    },
+    {
+      "id": "IDEA-014",
+      "title": "Reports & Dashboard AI-Assisted Builder",
+      "owner": "Rohan",
+      "team": "Salesforce Eng",
+      "domain": "Salesforce",
+      "horizon": "H2 Workflow AI",
+      "stage": "Backlog",
+      "priority": "Medium",
+      "sme": "",
+      "champions": "",
+      "tools": "Claude Code, Metadata API",
+      "dueDate": "",
+      "nextStep": "",
+      "updates": "",
+      "description": "Uses Claude Code and Metadata API to: (a) Prompt Generation - automatically craft a structured prompt that defines requirements, data sources, and layout for the desired dashboard or report; (b) Prompt-Driven Dashboard & Report Creation - use the generated prompt to automatically build the corresponding dashboards and reports; (c) Dashboard Cloning with Variations - replicate existing dashboards along with all associated charts and reports, applying minor modifications (filters, regions, time ranges, or metrics) as needed.",
+      "currentState": "Manual dashboard/report building; slow cloning with variations.",
+      "futureState": "Prompt-driven automated dashboard/report creation and cloning.",
+      "governance": { "dataSensitivity": "", "securityReviewed": false, "humanInLoop": true, "approvedToPilot": false },
+      "score": { "value": 0, "feasibility": 0, "data": 0, "risk": 0, "adoption": 0, "scalability": 0, "differentiation": 0 },
+      "metrics": { "hoursBefore": 0, "hoursAfter": 0, "runsPerMonth": 0, "usersImpacted": 0, "cycleBefore": 0, "cycleAfter": 0, "errorBefore": 0, "errorAfter": 0, "targetUsers": 0, "activeUsers": 0, "rate": 30 },
+      "log": [ { "date": "2026-09-08", "stage": "Backlog", "note": "Captured from backlog.", "blocker": "", "by": "Program Lead" } ]
+    },
+    {
+      "id": "IDEA-015",
+      "title": "Automated PR Review",
+      "owner": "Tejaswini C",
+      "team": "Salesforce Eng",
+      "domain": "Salesforce",
+      "horizon": "H2 Workflow AI",
+      "stage": "Backlog",
+      "priority": "Medium",
+      "sme": "",
+      "champions": "",
+      "tools": "Cline, CI/CD",
+      "dueDate": "",
+      "nextStep": "",
+      "updates": "",
+      "description": "An Automated PR Pipeline Review that acts as a quality gate before any code is merged, ensuring every PR is automatically scanned and validated against project standards - reducing manual effort, improving consistency, and accelerating delivery.",
+      "currentState": "Manual PR checks; inconsistent quality gates.",
+      "futureState": "Automated PR quality gate enforcing project standards.",
+      "governance": { "dataSensitivity": "", "securityReviewed": false, "humanInLoop": true, "approvedToPilot": false },
+      "score": { "value": 0, "feasibility": 0, "data": 0, "risk": 0, "adoption": 0, "scalability": 0, "differentiation": 0 },
+      "metrics": { "hoursBefore": 0, "hoursAfter": 0, "runsPerMonth": 0, "usersImpacted": 0, "cycleBefore": 0, "cycleAfter": 0, "errorBefore": 0, "errorAfter": 0, "targetUsers": 0, "activeUsers": 0, "rate": 30 },
+      "log": [ { "date": "2026-09-08", "stage": "Backlog", "note": "Captured from backlog. Possible overlap with IDEA-004 (confirm on call).", "blocker": "", "by": "Program Lead" } ]
+    },
+    {
+      "id": "IDEA-016",
+      "title": "Fresh Eye - Quarterly Cross-QA Review Event",
+      "owner": "Venkata Raghunandan",
+      "team": "QA / BA",
+      "domain": "Process Innovation",
+      "horizon": "H1 Productivity",
+      "stage": "Backlog",
+      "priority": "Medium",
+      "sme": "",
+      "champions": "",
+      "tools": "Process (non-AI)",
+      "dueDate": "",
+      "nextStep": "",
+      "updates": "",
+      "description": "A quarterly internal event where the QA and BA of a project present a key application flow to a QA from another project for fresh-eye testing. Since long-term project QAs may overlook cosmetic issues, usability gaps, or requirement misses due to familiarity, Fresh Eye brings an unbiased first-impression review. Conducted internally using demo/sandbox environments or screen-sharing walkthroughs (no client data exposure), ensuring confidentiality. The cross-QA tester reviews with a first-impression mindset and raises observations on UI/UX, usability, and potential requirement gaps. Findings are shared with the project team. Drives better product quality, cross-project learning, and stronger QA-BA collaboration - without needing client involvement.",
+      "currentState": "Familiarity blindness; usability/requirement gaps missed.",
+      "futureState": "Quarterly cross-project fresh-eye reviews with structured findings.",
+      "governance": { "dataSensitivity": "", "securityReviewed": false, "humanInLoop": true, "approvedToPilot": false },
+      "score": { "value": 0, "feasibility": 0, "data": 0, "risk": 0, "adoption": 0, "scalability": 0, "differentiation": 0 },
+      "metrics": { "hoursBefore": 0, "hoursAfter": 0, "runsPerMonth": 0, "usersImpacted": 0, "cycleBefore": 0, "cycleAfter": 0, "errorBefore": 0, "errorAfter": 0, "targetUsers": 0, "activeUsers": 0, "rate": 30 },
+      "log": [ { "date": "2026-09-08", "stage": "Backlog", "note": "Captured from backlog. Process Innovation (non-AI) - excluded from AI dashboard rollup.", "blocker": "", "by": "Program Lead" } ]
+    },
+    {
+      "id": "IDEA-017",
+      "title": "Multi-Party Meeting Slot Finder (Agentforce)",
+      "owner": "Sukamal Ghosh",
+      "team": "Salesforce Eng",
+      "domain": "Salesforce",
+      "horizon": "H3 Transformation",
+      "stage": "Backlog",
+      "priority": "Medium",
+      "sme": "",
+      "champions": "",
+      "tools": "Agentforce, Experience Cloud",
+      "dueDate": "",
+      "nextStep": "",
+      "updates": "",
+      "description": "A self-service Experience Cloud portal that finds a common meeting slot across multiple external parties, using Agentforce to broker a compromise when no common slot exists. A support executive proposes candidate slots and emails each party a secure link. Parties select availability (live indicator shows others' picks). If all select the same slot, it is finalized; if not, Agentforce analyzes selections, suggests a best-fit final slot, and auto-nudges non-responders. Fills a gap Salesforce Scheduler cannot (external, non-Salesforce parties). Benefits Legal, Finance/Banking, Insurance, Healthcare, and Public Sector.",
+      "currentState": "No true multi-party external consensus scheduling in Salesforce.",
+      "futureState": "Agentforce-brokered consensus scheduling portal for external parties.",
+      "governance": { "dataSensitivity": "", "securityReviewed": false, "humanInLoop": true, "approvedToPilot": false },
+      "score": { "value": 0, "feasibility": 0, "data": 0, "risk": 0, "adoption": 0, "scalability": 0, "differentiation": 0 },
+      "metrics": { "hoursBefore": 0, "hoursAfter": 0, "runsPerMonth": 0, "usersImpacted": 0, "cycleBefore": 0, "cycleAfter": 0, "errorBefore": 0, "errorAfter": 0, "targetUsers": 0, "activeUsers": 0, "rate": 30 },
+      "log": [ { "date": "2026-09-08", "stage": "Backlog", "note": "Captured from backlog.", "blocker": "", "by": "Program Lead" } ]
+    }
+  ],
+  "teams": []
+};
+
+const STAGES = ["Backlog","Prioritized","Committed","Building","Validation","Pilot","Adopted","Scaled"];
+const DOMAINS = ["Salesforce","Beyond-SF","Delivery Lifecycle","Enablement","Process Innovation"];
+const HORIZONS = ["H1 Productivity","H2 Workflow AI","H3 Transformation"];
+const PRIORITIES = ["High","Medium","Low"];
+const DOD = ["Prototype built","SME validated","Security/Governance checked","Pilot with real users","Users trained + docs","Value measured"];
+
+let DATA = { ideas: [], teams: [] };
+let sortKey = "id", sortDir = 1, currentSort = {};
+
+/* ============ DATA LOADING (layered: repo JSON -> localStorage -> embedded seed) ============ */
+async function loadData(){
+  // 1) localStorage draft (your working copy)
+  const ls = localStorage.getItem("ctl_ai_ideas");
+  if(ls){
+    try{ DATA = JSON.parse(ls); DATA.teams = DATA.teams||[]; setStatus("Loaded from browser (localStorage)"); return init(); }catch(e){}
+  }
+  // 2) committed repo JSON (works when hosted / served)
+  try{
+    const r = await fetch("data/ideas.json",{cache:"no-store"});
+    if(r.ok){ DATA = await r.json(); DATA.teams = DATA.teams||[]; persist(); setStatus("Loaded from data/ideas.json"); return init(); }
+  }catch(e){}
+  // 3) embedded seed (double-click open)
+  if(SEED){ DATA = SEED; DATA.teams = DATA.teams||[]; persist(); setStatus("Loaded embedded seed data"); return init(); }
+  DATA = { ideas: [], teams: [] }; setStatus("No data found"); init();
+}
+function setStatus(t){ document.getElementById("dataStatus").textContent = t + " \u2022 " + (DATA.ideas?DATA.ideas.length:0) + " ideas"; }
+
+/* ---- Auto-save to data/ideas.json on every UI update ----
+   Uses the File System Access API (Chrome/Edge). The user connects the file once
+   via the "Connect data/ideas.json" button; after that every persist() writes it
+   automatically. Falls back to localStorage-only if the API is unavailable. */
+let FILE_HANDLE = null;
+function persist(){
+  localStorage.setItem("ctl_ai_ideas", JSON.stringify(DATA));
+  writeSeedFile();
+}
+async function writeSeedFile(){
+  if(!FILE_HANDLE) return;
+  try{
+    DATA.meta = DATA.meta||{}; DATA.meta.lastUpdated = today();
+    const w = await FILE_HANDLE.createWritable();
+    await w.write(JSON.stringify(DATA,null,2));
+    await w.close();
+    setSaveStatus("Auto-saved to data/ideas.json \u2713");
+  }catch(e){ setSaveStatus("Auto-save failed (reconnect the file)"); }
+}
+async function connectSeedFile(){
+  if(!window.showOpenFilePicker){ alert("Auto-save needs Chrome or Edge. In other browsers, use 'Export JSON' and commit data/ideas.json manually."); return; }
+  try{
+    const [h] = await window.showOpenFilePicker({
+      types:[{description:"JSON",accept:{"application/json":[".json"]}}],
+      multiple:false
+    });
+    FILE_HANDLE = h;
+    await writeSeedFile();
+    setSaveStatus("Connected \u2192 data/ideas.json (auto-saving on every change)");
+  }catch(e){ /* user cancelled */ }
+}
+function setSaveStatus(t){ const e=document.getElementById("saveStatus"); if(e) e.textContent=t; }
+
+
+/* ============ CALCS ============ */
+function calcScore(s){ if(!s) return 0; const w={value:.25,feasibility:.15,data:.1,risk:.15,adoption:.15,scalability:.1,differentiation:.1};
+  return +((s.value*w.value+s.feasibility*w.feasibility+s.data*w.data+s.risk*w.risk+s.adoption*w.adoption+s.scalability*w.scalability+s.differentiation*w.differentiation)).toFixed(2); }
+function calcMetrics(m){
+  m = m||{}; const hb=+m.hoursBefore||0, ha=+m.hoursAfter||0, rpm=+m.runsPerMonth||0;
+  const perRunSaved = Math.max(hb-ha,0);
+  const pctEffort = hb>0 ? Math.round((perRunSaved/hb)*100) : 0;
+  const hrsMonth = +(perRunSaved*rpm).toFixed(1);
+  const hrsYear = +(hrsMonth*12).toFixed(0);
+  const cb=+m.cycleBefore||0, ca=+m.cycleAfter||0;
+  const pctCycle = cb>0 ? Math.round(((cb-ca)/cb)*100) : 0;
+  const eb=+m.errorBefore||0, ea=+m.errorAfter||0;
+  const pctQuality = eb>0 ? Math.round(((eb-ea)/eb)*100) : 0;
+  const tu=+m.targetUsers||0, au=+m.activeUsers||0;
+  const adoption = tu>0 ? Math.round((au/tu)*100) : 0;
+  return {perRunSaved,pctEffort,hrsMonth,hrsYear,pctCycle,pctQuality,adoption};
+}
+function dodPct(idea){ const g=idea.governance||{}; const done=[
+  idea.stage!=="Backlog" && idea.stage!=="Prioritized",
+  g.securityReviewed || (idea.sme&&idea.sme.length>0),
+  g.securityReviewed,
+  ["Pilot","Adopted","Scaled"].includes(idea.stage),
+  ["Adopted","Scaled"].includes(idea.stage),
+  (calcMetrics(idea.metrics).hrsYear>0)
+]; return Math.round(done.filter(Boolean).length/DOD.length*100); }
+function lastUpdate(idea){ if(idea.log&&idea.log.length) return idea.log[idea.log.length-1].date; return idea.dueDate||null; }
+
+/* ============ NAV ============ */
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active"); document.getElementById("view-"+b.dataset.view).classList.add("active");
+});
+
+/* ============ INIT / RENDER ALL ============ */
+function init(){ setStatus(document.getElementById("dataStatus").textContent.split(" \u2022 ")[0]); buildFilters(); renderAll(); }
+function renderAll(){ renderDashboard(); renderKanban(); renderIdeas(); renderPeople(); renderTeams(); }
+
+/* ---- Dashboard ---- */
+function renderDashboard(){
+  const ideas = DATA.ideas.filter(i=>i.domain!=="Process Innovation");
+  const all = DATA.ideas;
+  let hrsYear=0, activeUsers=0;
+  all.forEach(i=>{ const c=calcMetrics(i.metrics); hrsYear+=c.hrsYear; activeUsers+=(+i.metrics?.activeUsers||0); });
+  const cnt = st=>all.filter(i=>i.stage===st).length;
+  const pocs = all.filter(i=>["Building","Validation","Pilot","Adopted","Scaled"].includes(i.stage)).length;
+  const pilots = all.filter(i=>["Pilot","Adopted","Scaled"].includes(i.stage)).length;
+  const adopted = all.filter(i=>["Adopted","Scaled"].includes(i.stage)).length;
+  const scaled = cnt("Scaled");
+  const kpis=[
+    {n:all.length,l:"Total Ideas",c:""},
+    {n:pocs,l:"POCs / In Build+",c:"blue"},
+    {n:pilots,l:"Pilots",c:"purple"},
+    {n:adopted,l:"Adopted",c:"green"},
+    {n:scaled,l:"Scaled",c:"green"},
+    {n:fmt(hrsYear),l:"Hours Saved / yr",c:"accent"},
+    {n:activeUsers,l:"Active Users",c:"blue"}
+  ];
+  document.getElementById("kpis").innerHTML = kpis.map(k=>`<div class="kpi ${k.c}"><div class="n">${k.n}</div><div class="l">${k.l}</div></div>`).join("");
+
+  drawFunnel();
+  drawHorizon(ideas);
+
+  const top=[...all].map(i=>({i,c:calcMetrics(i.metrics)})).sort((a,b)=>b.c.hrsYear-a.c.hrsYear).slice(0,6);
+  document.querySelector("#topTable tbody").innerHTML = top.map(({i,c})=>`
+    <tr class="clickable" onclick="openDetail('${i.id}')">
+      <td>${esc(i.title)}</td><td>${esc(i.owner)}</td><td>${i.stage}</td>
+      <td>${fmt(c.hrsYear)}</td>
+      <td>${c.adoption}%</td>
+    </tr>`).join("");
+}
+function drawFunnel(){
+  const steps=[
+    ["Ideas", DATA.ideas.length],
+    ["Prioritized+", DATA.ideas.filter(i=>i.stage!=="Backlog").length],
+    ["In Build+", DATA.ideas.filter(i=>["Building","Validation","Pilot","Adopted","Scaled"].includes(i.stage)).length],
+    ["Pilot+", DATA.ideas.filter(i=>["Pilot","Adopted","Scaled"].includes(i.stage)).length],
+    ["Adopted+", DATA.ideas.filter(i=>["Adopted","Scaled"].includes(i.stage)).length]
+  ];
+  const c=document.getElementById("funnel"), ctx=c.getContext("2d"); resizeCanvas(c);
+  const W=c.width, H=c.height, max=Math.max(1,steps[0][1]);
+  ctx.clearRect(0,0,W,H); const bh=(H-20)/steps.length-8;
+  steps.forEach((s,idx)=>{
+    const w=(s[1]/max)*(W-140), y=10+idx*(bh+8);
+    ctx.fillStyle="#4fc3f7"; ctx.globalAlpha=1-idx*0.14; roundRect(ctx,120,y,Math.max(w,4),bh,5); ctx.fill(); ctx.globalAlpha=1;
+    ctx.fillStyle="#93a1b5"; ctx.font="12px Segoe UI"; ctx.textAlign="right"; ctx.fillText(s[0],112,y+bh/2+4);
+    ctx.fillStyle="#e7edf5"; ctx.textAlign="left"; ctx.fillText(s[1],125+Math.max(w,4),y+bh/2+4);
+  });
+}
+function drawHorizon(ideas){
+  const counts={"H1 Productivity":0,"H2 Workflow AI":0,"H3 Transformation":0};
+  ideas.forEach(i=>{ if(counts[i.horizon]!==undefined) counts[i.horizon]++; });
+  const c=document.getElementById("horizon"), ctx=c.getContext("2d"); resizeCanvas(c);
+  const W=c.width,H=c.height,total=Math.max(1,ideas.length),cx=W/2,cy=H/2,r=Math.min(W,H)/2-20;
+  const cols={"H1 Productivity":"#31c48d","H2 Workflow AI":"#f7b955","H3 Transformation":"#a78bfa"};
+  ctx.clearRect(0,0,W,H); let a=-Math.PI/2;
+  Object.keys(counts).forEach(k=>{ const slice=counts[k]/total*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,a,a+slice); ctx.closePath(); ctx.fillStyle=cols[k]; ctx.fill(); a+=slice; });
+  ctx.beginPath(); ctx.arc(cx,cy,r*0.55,0,Math.PI*2); ctx.fillStyle="#171e29"; ctx.fill();
+  ctx.fillStyle="#e7edf5"; ctx.font="bold 20px Segoe UI"; ctx.textAlign="center"; ctx.fillText(ideas.length,cx,cy+2);
+  ctx.fillStyle="#93a1b5"; ctx.font="11px Segoe UI"; ctx.fillText("AI ideas",cx,cy+18);
+}
+
+/* ---- Kanban ---- */
+function idsInData(){ return new Set(DATA.ideas.map(i=>i.id)); }
+function childrenOf(id){ return DATA.ideas.filter(x=>x.parent===id); }
+function isTopLevel(i,ids){ return !i.parent || !ids.has(i.parent); }
+function cardMarkup(i,kind){
+  const c=calcMetrics(i.metrics);
+  const kids = childrenOf(i.id);
+  const subBadge = (kind==="parent" && kids.length) ? `<div class="sub-count">${kids.length} sub-idea${kids.length>1?'s':''}</div>` : "";
+  const parentIdea = i.parent ? DATA.ideas.find(x=>x.id===i.parent) : null;
+  const orphanNote = (kind==="child-standalone" && parentIdea) ? `<div class="childnote">part of ${esc(parentIdea.title)}</div>` : "";
+  return `<div class="card ${kind==="parent"?"parent":""} ${(kind==="child"||kind==="child-standalone")?"child":""}" onclick="openDetail('${i.id}')">
+      <div class="t">${esc(i.title)}</div>
+      <div class="m"><span>${esc(i.owner||'-')}</span><span class="pill horizon ${hz(i.horizon)}">${hzLabel(i.horizon)}</span></div>
+      ${c.hrsYear?`<div class="m"><span>${fmt(c.hrsYear)} hrs/yr saved</span><span class="pill ${i.priority}">${i.priority}</span></div>`:`<div class="m"><span></span><span class="pill ${i.priority}">${i.priority}</span></div>`}
+      ${subBadge}${orphanNote}
+    </div>`;
+}
+function renderKanban(){
+  const k=document.getElementById("kanban");
+  const ids=idsInData();
+  k.innerHTML = STAGES.map(st=>{
+    const items=DATA.ideas.filter(i=>i.stage===st);
+    // top-level ideas in this column (no parent, or parent not present in data)
+    const tops=items.filter(i=>isTopLevel(i,ids));
+    // children whose parent is NOT in this same column -> render standalone here
+    const orphanChildren=items.filter(i=>!isTopLevel(i,ids) && (()=>{ const p=DATA.ideas.find(x=>x.id===i.parent); return !p || p.stage!==st; })());
+    const cards = tops.map(i=>{
+      // children of this parent that sit in the SAME column -> nest under it
+      const nested = childrenOf(i.id).filter(ch=>ch.stage===st);
+      const childHtml = nested.length ? `<div class="childwrap">${nested.map(ch=>cardMarkup(ch,"child")).join("")}</div>` : "";
+      return cardMarkup(i,"parent") + childHtml;
+    }).join("") + orphanChildren.map(i=>cardMarkup(i,"child-standalone")).join("");
+    return `<div class="kcol"><h3>${st}<span>${items.length}</span></h3><div class="cards">${cards}</div></div>`;
+  }).join("");
+}
+function hz(h){ return h?h.split(" ")[0]:""; }
+function hzLabel(h){ if(!h) return ""; const map={"H1 Productivity":"Productivity","H2 Workflow AI":"Workflow AI","H3 Transformation":"Transformation"}; return map[h]||h.split(" ").slice(1).join(" ")||h; }
+
+/* ---- Ideas table ---- */
+function buildFilters(){
+  fill("fStage",["All stages",...STAGES]);
+  fill("fDomain",["All domains",...DOMAINS]);
+  fill("fHorizon",["All horizons",...HORIZONS]);
+  fill("fOwner",["All owners",...[...new Set(DATA.ideas.map(i=>i.owner).filter(Boolean))].sort()]);
+}
+function fill(id,arr){ document.getElementById(id).innerHTML=arr.map((a,i)=>`<option value="${i===0?'':a}">${a}</option>`).join(""); }
+function renderIdeas(){
+  const q=(val("fSearch")||"").toLowerCase(), st=val("fStage"), dm=val("fDomain"), hh=val("fHorizon"), ow=val("fOwner");
+  let list=DATA.ideas.filter(i=>
+    (!q||(i.title+i.description+i.owner).toLowerCase().includes(q)) &&
+    (!st||i.stage===st)&&(!dm||i.domain===dm)&&(!hh||i.horizon===hh)&&(!ow||i.owner===ow));
+  list.sort((a,b)=>{ let av=sortKey==="score"?calcScore(a.score):a[sortKey], bv=sortKey==="score"?calcScore(b.score):b[sortKey];
+    av=av||""; bv=bv||""; return (av>bv?1:av<bv?-1:0)*sortDir; });
+  document.querySelector("#ideasTable tbody").innerHTML = list.map(i=>`
+    <tr class="clickable" onclick="openDetail('${i.id}')">
+      <td>${i.id}</td><td>${esc(i.title)}</td><td>${esc(i.owner||'-')}</td>
+      <td>${i.domain||''}</td><td><span class="pill horizon ${hz(i.horizon)}">${hzLabel(i.horizon)}</span></td>
+      <td>${i.stage}</td><td><span class="pill ${i.priority}">${i.priority}</span></td>
+      <td>${calcScore(i.score).toFixed(2)}</td><td>${i.dueDate||'-'}</td>
+    </tr>`).join("") || `<tr><td colspan="9" class="small" style="padding:20px">No ideas match.</td></tr>`;
+}
+function sortBy(k){ if(sortKey===k) sortDir*=-1; else {sortKey=k; sortDir=1;} renderIdeas(); }
+
+/* ---- People ---- */
+function renderPeople(){
+  const pt=document.querySelector("#peopleTable tbody"); if(!pt) return;
+  const map={};
+  DATA.ideas.forEach(i=>{ if(!i.owner) return; (map[i.owner]=map[i.owner]||[]).push(i); });
+  pt.innerHTML = Object.keys(map).sort().map(o=>{
+    const list=map[o]; const stages=[...new Set(list.map(i=>i.stage))].join(", ");
+    return `<tr><td><b>${esc(o)}</b></td><td>${list.length}</td><td class="small">${stages}</td></tr>`;
+  }).join("");
+}
+
+
+/* ---- Teams & Members ----
+   One row PER IDEA. Owner = the idea owner. Members are stored on each idea as
+   idea.teamMembers[] and can be filled from the workbook "Team Members" column
+   (one name per line) or edited here. The bottom toolbar can add a standalone
+   team to DATA.teams (kept for the Excel Teams tab / grouping). */
+function splitMembers(v){
+  if(v==null) return [];
+  if(Array.isArray(v)) return v.map(x=>String(x).trim()).filter(Boolean);
+  return String(v).split(/\r?\n|,|;/).map(s=>s.trim()).filter(Boolean);
+}
+function renderTeams(){
+  const tb=document.querySelector("#teamsTable tbody"); if(!tb) return;
+  const ideas=DATA.ideas||[];
+  tb.innerHTML = ideas.length? ideas.map(i=>{
+    const mems=splitMembers(i.teamMembers);
+    return `<tr>
+      <td><b>${esc(i.title)}</b><div class="small">${i.id}</div></td>
+      <td>${esc(i.owner||'-')}</td>
+      <td>${esc(i.team||'-')}</td>
+      <td class="small">${mems.length? mems.map(esc).join(", ") : '<span class="small">No members yet</span>'}</td>
+      <td style="white-space:nowrap"><button class="btn sm sec" onclick="editIdeaMembers('${i.id}')">Edit</button></td>
+    </tr>`;
+  }).join("") : '<tr><td colspan="5" class="small" style="padding:16px">No ideas yet.</td></tr>';
+}
+function editIdeaMembers(id){
+  const i=DATA.ideas.find(x=>x.id===id); if(!i) return;
+  i.teamMembers=splitMembers(i.teamMembers);
+  const m=document.getElementById("modal");
+  m.innerHTML=`
+    <button class="close" onclick="closeModal()">&times;</button>
+    <h2>${esc(i.title)}</h2>
+    <div class="small">${i.id} &bull; Owner: <b>${esc(i.owner||'-')}</b> &bull; Team: ${esc(i.team||'-')}</div>
+    <h2 class="section" style="margin-top:16px">Team members</h2>
+    <div id="im_members">${i.teamMembers.length? i.teamMembers.map((mb,mi)=>`<span class="pill Low" style="margin:2px;display:inline-block">${esc(mb)} <a href="#" onclick="removeIdeaMember('${id}',${mi});return false" style="color:var(--red)">&times;</a></span>`).join(" ") : '<span class="small">No members yet.</span>'}</div>
+    <div class="toolbar" style="margin-top:10px"><input id="im_newmember" placeholder="Add member name" style="max-width:260px"/><button class="btn sm" onclick="addIdeaMember('${id}')">+ Add member</button></div>
+    <label>Or paste many (one name per line)</label>
+    <textarea id="im_bulk" placeholder="Jane Doe&#10;John Roe"></textarea>
+    <button class="btn sm sec" onclick="bulkAddIdeaMembers('${id}')">Add all lines</button>
+    <br/><br/>
+    <button class="btn" onclick="closeModal()">Done</button>`;
+  document.getElementById("overlay").classList.add("open");
+}
+function addIdeaMember(id){ const i=DATA.ideas.find(x=>x.id===id); if(!i)return; const n=val("im_newmember"); if(!n)return; i.teamMembers=splitMembers(i.teamMembers); i.teamMembers.push(n); persist(); renderTeams(); editIdeaMembers(id); }
+function bulkAddIdeaMembers(id){ const i=DATA.ideas.find(x=>x.id===id); if(!i)return; const lines=splitMembers(document.getElementById("im_bulk").value); if(!lines.length)return; i.teamMembers=splitMembers(i.teamMembers); lines.forEach(n=>{ if(!i.teamMembers.includes(n)) i.teamMembers.push(n); }); persist(); renderTeams(); editIdeaMembers(id); }
+function removeIdeaMember(id,mi){ const i=DATA.ideas.find(x=>x.id===id); if(!i)return; i.teamMembers=splitMembers(i.teamMembers); i.teamMembers.splice(mi,1); persist(); renderTeams(); editIdeaMembers(id); }
+/* Standalone team roster (bottom toolbar) kept for the Excel Teams tab */
+function addTeam(){ const n=val("newTeamName"); const l=val("newTeamLead"); if(!n){alert("Enter a team name.");return;} DATA.teams=DATA.teams||[];
+  if(DATA.teams.some(t=>(t.name||"").toLowerCase()===n.toLowerCase())){ alert("That team already exists."); return; }
+  DATA.teams.push({name:n,lead:l,members:[]}); document.getElementById("newTeamName").value=""; const le=document.getElementById("newTeamLead"); if(le) le.value=""; persist(); alert("Team \""+n+"\" added to the Teams roster (exported in the Excel Teams tab)."); }
+
+/* ============ DETAIL MODAL ============ */
+function openDetail(id){
+  const i=DATA.ideas.find(x=>x.id===id); if(!i) return;
+  const c=calcMetrics(i.metrics), sc=calcScore(i.score), dp=dodPct(i), g=i.governance||{};
+  const parentIdea = i.parent ? DATA.ideas.find(x=>x.id===i.parent) : null;
+  const kids = childrenOf(i.id);
+  const relLine = (parentIdea || kids.length) ? `<div class="small" style="margin-top:4px">${
+      parentIdea ? `Sub-idea of <a href="#" onclick="openDetail('${parentIdea.id}');return false">${esc(parentIdea.title)}</a>` : ""
+    }${(parentIdea && kids.length)?" &bull; ":""}${
+      kids.length ? `Parent of ${kids.length} sub-idea${kids.length>1?'s':''}: ${kids.map(ch=>`<a href="#" onclick="openDetail('${ch.id}');return false">${esc(ch.title)}</a>`).join(", ")}` : ""
+    }</div>` : "";
+  const m=document.getElementById("modal");
+  m.innerHTML=`
+    <button class="close" onclick="closeModal()">&times;</button>
+    <h2>${esc(i.title)}</h2>
+    <div class="small">${i.id} &bull; Owner: <b>${esc(i.owner||'-')}</b> &bull; ${i.domain} &bull; <span class="pill ${hz(i.horizon)}">${i.horizon}</span> &bull; <span class="pill ${i.priority}">${i.priority}</span></div>
+    ${relLine}
+    <div class="tabs">
+      <button class="active" onclick="tab(this,'t-over')">Overview</button>
+      <button onclick="tab(this,'t-metrics')">Metrics</button>
+      <button onclick="tab(this,'t-dod')">DoD &amp; Governance</button>
+      <button onclick="tab(this,'t-log')">Progress Log</button>
+    </div>
+
+    <div id="t-over" class="tabpane active">
+      <div class="kv">
+        <div>Stage</div><div>${i.stage}</div>
+        <div>Team</div><div>${esc(i.team||'-')}</div>
+        <div>Tools</div><div>${esc(i.tools||'-')}</div>
+        <div>SME</div><div>${esc(i.sme||'- (assign to validate)')}</div>
+        <div>Champions</div><div>${esc(i.champions||'-')}</div>
+        <div>Due date</div><div>${i.dueDate||'-'}</div>
+        <div>Priority score</div><div>${sc.toFixed(2)} / 5</div>
+        <div>Next step</div><div>${esc(i.nextStep||'-')}</div>
+        <div>Latest update</div><div>${esc(i.updates||'-')}</div>
+      </div>
+      <label>Problem / Process</label><div class="note">${esc(i.description||'-')}</div>
+      <div class="row">
+        <div class="col"><label>Current state</label><div class="small">${esc(i.currentState||'-')}</div></div>
+        <div class="col"><label>Future state (AI-enabled)</label><div class="small">${esc(i.futureState||'-')}</div></div>
+      </div>
+      <br/><button class="btn" onclick="openEditor('${i.id}')">Edit</button>
+      <button class="btn sec" onclick="addLog('${i.id}')">+ Add progress update</button>
+    </div>
+
+    <div id="t-metrics" class="tabpane">
+      <div class="metric-box">
+        <div class="mb"><div class="v">${c.pctEffort}%</div><div class="k">Effort reduction / run</div></div>
+        <div class="mb"><div class="v">${fmt(c.hrsMonth)}</div><div class="k">Hours saved / month</div></div>
+        <div class="mb"><div class="v">${fmt(c.hrsYear)}</div><div class="k">Hours saved / year</div></div>
+        <div class="mb"><div class="v">${c.pctCycle}%</div><div class="k">Faster cycle time</div></div>
+        <div class="mb"><div class="v">${c.pctQuality}%</div><div class="k">Quality improvement</div></div>
+        <div class="mb"><div class="v">${c.adoption}%</div><div class="k">Adoption (${i.metrics?.activeUsers||0}/${i.metrics?.targetUsers||0})</div></div>
+      </div>
+      <div class="small" style="margin-top:12px">Inputs: ${i.metrics?.hoursBefore||0}h &rarr; ${i.metrics?.hoursAfter||0}h per run &times; ${i.metrics?.runsPerMonth||0} runs/mo &times; ${i.metrics?.usersImpacted||0} users.</div>
+    </div>
+
+    <div id="t-dod" class="tabpane">
+      <label>Definition of Done &mdash; ${dp}% complete</label>
+      <div class="bar"><i style="width:${dp}%"></i></div>
+      <ul class="dod">${DOD.map((d,idx)=>{ const done=dodDone(i,idx); return `<li>${done?'\u2705':'\u2b1c'} ${d}</li>`; }).join("")}</ul>
+      <label>Governance</label>
+      <div class="kv">
+        <div>Data sensitivity</div><div>${esc(g.dataSensitivity||'-')}</div>
+        <div>Security reviewed</div><div>${g.securityReviewed?'Yes':'No'}</div>
+        <div>Human-in-loop</div><div>${g.humanInLoop?'Yes':'No'}</div>
+        <div>Approved to pilot</div><div>${g.approvedToPilot?'Yes':'No'}</div>
+      </div>
+    </div>
+
+    <div id="t-log" class="tabpane">
+      ${(i.log||[]).slice().reverse().map(l=>`<div class="logitem"><div class="d">${l.date} &bull; ${l.stage} &bull; ${esc(l.by||'')}</div><div>${esc(l.note||'')}</div>${l.blocker?`<div class="small" style="color:var(--red)">Blocker: ${esc(l.blocker)}</div>`:''}</div>`).join("") || '<div class="small">No log entries yet.</div>'}
+      <br/><button class="btn sec" onclick="addLog('${i.id}')">+ Add progress update</button>
+    </div>
+  `;
+  document.getElementById("overlay").classList.add("open");
+}
+function dodDone(i,idx){ const g=i.governance||{}; return [
+  i.stage!=="Backlog"&&i.stage!=="Prioritized",
+  g.securityReviewed||(i.sme&&i.sme.length>0),
+  g.securityReviewed,
+  ["Pilot","Adopted","Scaled"].includes(i.stage),
+  ["Adopted","Scaled"].includes(i.stage),
+  calcMetrics(i.metrics).hrsYear>0
+][idx]; }
+function tab(btn,id){ btn.parentElement.querySelectorAll("button").forEach(b=>b.classList.remove("active")); btn.classList.add("active");
+  document.querySelectorAll(".tabpane").forEach(p=>p.classList.remove("active")); document.getElementById(id).classList.add("active"); }
+function closeModal(){ document.getElementById("overlay").classList.remove("open"); }
+document.getElementById("overlay").addEventListener("click",e=>{ if(e.target.id==="overlay") closeModal(); });
+
+/* ============ EDITOR ============ */
+function openEditor(id){
+  const isNew=!id; const i = isNew ? blankIdea() : JSON.parse(JSON.stringify(DATA.ideas.find(x=>x.id===id)));
+  const m=document.getElementById("modal"); const mm=i.metrics||{}; const g=i.governance||{};
+  m.innerHTML=`
+    <button class="close" onclick="closeModal()">&times;</button>
+    <h2>${isNew?'New Idea':'Edit: '+esc(i.title)}</h2>
+    <div class="warn note">Only <b>Owner</b> is required to save. Everything else (stage, due date, metrics, etc.) can be filled in live on the call.</div>
+    <div class="row">
+      <div class="col">
+        <label>Idea Title *</label><input id="e_title" value="${attr(i.title)}"/>
+        <label>Owner (AI Lead) *</label><input id="e_owner" value="${attr(i.owner)}"/>
+        <label>Team / Sub-team</label><input id="e_team" value="${attr(i.team)}"/>
+        <label>Domain</label>${sel('e_domain',DOMAINS,i.domain)}
+        <label>Horizon</label>${sel('e_horizon',HORIZONS,i.horizon)}
+        <label>Tools used</label><input id="e_tools" value="${attr(i.tools)}"/>
+      </div>
+      <div class="col">
+        <label>Stage</label>${sel('e_stage',STAGES,i.stage)}
+        <label>Priority</label>${sel('e_priority',PRIORITIES,i.priority)}
+        <label>SME (validator)</label><input id="e_sme" value="${attr(i.sme)}"/>
+        <label>Champions</label><input id="e_champions" value="${attr(i.champions)}"/>
+        <label>Due date *</label><input id="e_due" type="date" value="${attr(i.dueDate)}"/>
+        <label>Next step</label><input id="e_next" value="${attr(i.nextStep)}"/>
+        <label>Parent idea (makes this a sub-idea)</label>
+        <select id="e_parent"><option value="">— none (top-level) —</option>${
+          DATA.ideas.filter(x=>x.id!==i.id).map(x=>`<option value="${x.id}" ${x.id===i.parent?'selected':''}>${esc(x.title)} (${x.id})</option>`).join("")
+        }</select>
+      </div>
+    </div>
+    <label>Problem / Process (bring a process, not a tech idea)</label><textarea id="e_desc">${esc(i.description)}</textarea>
+    <div class="row">
+      <div class="col"><label>Current state</label><textarea id="e_cur">${esc(i.currentState)}</textarea></div>
+      <div class="col"><label>Future state</label><textarea id="e_fut">${esc(i.futureState)}</textarea></div>
+    </div>
+    <h2 class="section" style="margin-top:16px">Metrics &mdash; the impact numbers</h2>
+    <div class="note">These are optional and start empty. Fill them once we know the process, so the portal can auto-calculate the benefit. <b>All fields are blank until you enter real numbers.</b><br/>
+      &bull; <b>Hours before / after</b> = how long the task takes per run today vs. with AI &rarr; drives <i>Effort reduction</i> &amp; <i>Hours saved</i>.<br/>
+      &bull; <b>Runs per month</b> = how often the task happens &rarr; scales hours saved.<br/>
+      &bull; <b>Cycle before / after (days)</b> = end-to-end turnaround time &rarr; drives <i>Faster cycle time %</i>.<br/>
+      &bull; <b>Error rate before / after (%)</b> = mistakes/rework rate &rarr; drives <i>Quality improvement %</i>.<br/>
+      &bull; <b>Target vs. Active users</b> = who should use it vs. who actually does &rarr; drives <i>Adoption %</i>.</div>
+    <div class="row">
+      <div class="col">
+        <label>Hours before (per run)</label><input id="m_hb" type="number" step="0.25" placeholder="e.g. 3" value="${mm.hoursBefore||''}"/>
+        <label>Hours after (per run)</label><input id="m_ha" type="number" step="0.25" placeholder="e.g. 1" value="${mm.hoursAfter||''}"/>
+        <label>Runs per month</label><input id="m_rpm" type="number" placeholder="e.g. 40" value="${mm.runsPerMonth||''}"/>
+        <label>Users impacted</label><input id="m_ui" type="number" placeholder="e.g. 15" value="${mm.usersImpacted||''}"/>
+      </div>
+      <div class="col">
+        <label>Cycle before (days)</label><input id="m_cb" type="number" step="0.5" placeholder="optional" value="${mm.cycleBefore||''}"/>
+        <label>Cycle after (days)</label><input id="m_ca" type="number" step="0.5" placeholder="optional" value="${mm.cycleAfter||''}"/>
+        <label>Error rate before (%)</label><input id="m_eb" type="number" placeholder="optional" value="${mm.errorBefore||''}"/>
+        <label>Error rate after (%)</label><input id="m_ea" type="number" placeholder="optional" value="${mm.errorAfter||''}"/>
+      </div>
+      <div class="col">
+        <label>Target users</label><input id="m_tu" type="number" placeholder="e.g. 20" value="${mm.targetUsers||''}"/>
+        <label>Active users</label><input id="m_au" type="number" placeholder="e.g. 0" value="${mm.activeUsers||''}"/>
+      </div>
+    </div>
+
+    <h2 class="section" style="margin-top:16px">Prioritization score (1-5)</h2>
+    <div class="row">
+      ${['value','feasibility','data','risk','adoption','scalability','differentiation'].map(k=>
+        `<div style="min-width:120px"><label>${k}</label><input id="s_${k}" type="number" min="1" max="5" value="${(i.score&&i.score[k])||3}"/></div>`).join("")}
+    </div>
+    <h2 class="section" style="margin-top:16px">Governance</h2>
+    <div class="row">
+      <div class="col"><label>Data sensitivity</label><input id="g_ds" value="${attr(g.dataSensitivity)}"/></div>
+      <div style="min-width:140px"><label>Security reviewed</label><select id="g_sr"><option ${g.securityReviewed?'':'selected'}>No</option><option ${g.securityReviewed?'selected':''}>Yes</option></select></div>
+      <div style="min-width:140px"><label>Human in loop</label><select id="g_hl"><option ${g.humanInLoop?'selected':''}>Yes</option><option ${g.humanInLoop?'':'selected'}>No</option></select></div>
+      <div style="min-width:140px"><label>Approved to pilot</label><select id="g_ap"><option ${g.approvedToPilot?'':'selected'}>No</option><option ${g.approvedToPilot?'selected':''}>Yes</option></select></div>
+    </div>
+    <div id="e_err" style="color:var(--red);margin-top:10px"></div>
+    <br/>
+    <button class="btn" onclick="saveIdea('${isNew?'':i.id}')">Save</button>
+    <button class="btn sec" onclick="closeModal()">Cancel</button>
+    ${isNew?'':`<button class="btn ghost" style="float:right" onclick="delIdea('${i.id}')">Delete</button>`}
+  `;
+  document.getElementById("overlay").classList.add("open");
+}
+function blankIdea(){ return {id:nextId(),title:"",owner:"",team:"",domain:"Salesforce",horizon:"H1 Productivity",tools:"",
+  stage:"Backlog",priority:"Medium",sme:"",champions:"",dueDate:"",nextStep:"",updates:"",description:"",currentState:"",futureState:"",
+  governance:{dataSensitivity:"Internal",securityReviewed:false,humanInLoop:true,approvedToPilot:false},
+  score:{value:3,feasibility:3,data:3,risk:3,adoption:3,scalability:3,differentiation:3},
+  metrics:{hoursBefore:0,hoursAfter:0,runsPerMonth:0,usersImpacted:0,cycleBefore:0,cycleAfter:0,errorBefore:0,errorAfter:0,targetUsers:0,activeUsers:0,rate:30},
+  log:[]}; }
+function nextId(){ let n=0; DATA.ideas.forEach(i=>{ const num=parseInt((i.id||"").replace(/\D/g,""))||0; if(num>n)n=num; }); return "IDEA-"+String(n+1).padStart(3,"0"); }
+function saveIdea(id){
+  const stage=val("e_stage");
+  const obj={ id: id||nextId(), title:val("e_title"),owner:val("e_owner"),team:val("e_team"),parent:val("e_parent"),domain:val("e_domain"),
+    horizon:val("e_horizon"),tools:val("e_tools"),stage,priority:val("e_priority"),sme:val("e_sme"),champions:val("e_champions"),
+    dueDate:val("e_due"),nextStep:val("e_next"),updates:val("e_next"),description:val("e_desc"),currentState:val("e_cur"),futureState:val("e_fut"),
+    governance:{dataSensitivity:val("g_ds"),securityReviewed:val("g_sr")==="Yes",humanInLoop:val("g_hl")==="Yes",approvedToPilot:val("g_ap")==="Yes"},
+    score:{value:+val("s_value"),feasibility:+val("s_feasibility"),data:+val("s_data"),risk:+val("s_risk"),adoption:+val("s_adoption"),scalability:+val("s_scalability"),differentiation:+val("s_differentiation")},
+    metrics:{hoursBefore:+val("m_hb"),hoursAfter:+val("m_ha"),runsPerMonth:+val("m_rpm"),usersImpacted:+val("m_ui"),cycleBefore:+val("m_cb"),cycleAfter:+val("m_ca"),errorBefore:+val("m_eb"),errorAfter:+val("m_ea"),targetUsers:+val("m_tu"),activeUsers:+val("m_au"),rate:30}
+  };
+  // enforcement: Owner is the only required field
+  if(!obj.owner) return err("An Owner is required.");
+  const existing = DATA.ideas.find(x=>x.id===obj.id);
+  if(existing){ obj.log = existing.log||[]; Object.assign(existing,obj); }
+  else { obj.log=[{date:today(),stage,note:"Idea created.",blocker:"",by:"Program Lead"}]; DATA.ideas.push(obj); }
+  persist(); buildFilters(); renderAll(); closeModal();
+}
+function err(t){ document.getElementById("e_err").textContent=t; }
+function delIdea(id){ if(!confirm("Delete this idea?"))return; DATA.ideas=DATA.ideas.filter(i=>i.id!==id); persist(); buildFilters(); renderAll(); closeModal(); }
+function addLog(id){ const i=DATA.ideas.find(x=>x.id===id); const note=prompt("Progress update:"); if(note===null)return;
+  const blocker=prompt("Blocker (leave blank if none):")||""; i.log=i.log||[]; i.log.push({date:today(),stage:i.stage,note,blocker,by:"Program Lead"}); i.updates=note; persist(); renderAll(); openDetail(id); }
+
+/* ============ IMPORT ============ */
+document.getElementById("importFile").addEventListener("change",handleImport);
+function handleImport(e){
+  const f=e.target.files[0]; if(!f) return;
+  const reader=new FileReader();
+  if(f.name.endsWith(".json")){
+    reader.onload=()=>{ try{ const j=JSON.parse(reader.result); if(j.teams){ DATA.teams=j.teams; persist(); renderTeams(); } previewImport(j.ideas||j); }catch(err){ alert("Invalid JSON"); } };
+    reader.readAsText(f);
+  } else {
+    reader.onload=()=>{ const wb=XLSX.read(reader.result,{type:"array"}); importTeamsFromWorkbook(wb); previewImport(parseWorkbook(wb)); };
+    reader.readAsArrayBuffer(f);
+  }
+}
+function importTeamsFromWorkbook(wb){
+  const ts=wb.Sheets["Teams"]; if(!ts) return;
+  const rows=XLSX.utils.sheet_to_json(ts,{defval:""});
+  const byTeam={};
+  rows.forEach(r=>{ const t=(r["Team"]||"").toString().trim(); const mb=(r["Member"]||"").toString().trim(); if(!t) return; (byTeam[t]=byTeam[t]||[]); if(mb) byTeam[t].push(mb); });
+  const teams=Object.keys(byTeam).map(name=>({name,members:byTeam[name]}));
+  if(teams.length){ DATA.teams=teams; persist(); renderTeams(); }
+}
+function parseWorkbook(wb){
+  const ideasSheet = wb.Sheets["Ideas"]||wb.Sheets[wb.SheetNames[0]];
+  const metricsSheet = wb.Sheets["Metrics"];
+  const logSheet = wb.Sheets["Progress Log"];
+  const rows = XLSX.utils.sheet_to_json(ideasSheet,{defval:""});
+  const mrows = metricsSheet?XLSX.utils.sheet_to_json(metricsSheet,{defval:""}):[];
+  const lrows = logSheet?XLSX.utils.sheet_to_json(logSheet,{defval:""}):[];
+  const key=r=>(r["ID"]||r["Idea Title"]||"").toString().trim().toLowerCase();
+  const mByKey={}; mrows.forEach(r=>mByKey[key(r)]=r);
+  const lByKey={}; lrows.forEach(r=>{ (lByKey[key(r)]=lByKey[key(r)]||[]).push(r); });
+  return rows.filter(r=>r["Idea Title"]).map(r=>{
+    const k=key(r), m=mByKey[k]||{};
+    return {
+      id:(r["ID"]||"").toString().trim(), title:r["Idea Title"], owner:r["Owner"]||"", team:r["Team/Sub-team"]||"",
+      parent:(r["Parent ID"]||r["Parent"]||"").toString().trim(),
+      teamMembers:splitMembers(r["Team Members"]),
+      domain:r["Domain"]||"Salesforce", horizon:r["Horizon"]||"H1 Productivity", tools:r["Tools Used"]||"",
+      stage:r["Stage"]||"Backlog", priority:r["Priority"]||"Medium", sme:r["SME"]||"", champions:r["Champions"]||"",
+      dueDate:r["Due Date"]||"", nextStep:r["Next Step"]||"", updates:r["Updates"]||"", description:r["Detailed Description"]||"",
+      currentState:"", futureState:"",
+      governance:{dataSensitivity:"Internal",securityReviewed:false,humanInLoop:true,approvedToPilot:false},
+      score:{value:3,feasibility:3,data:3,risk:3,adoption:3,scalability:3,differentiation:3},
+      metrics:{hoursBefore:+m["Hours Before (per run)"]||0,hoursAfter:+m["Hours After (per run)"]||0,runsPerMonth:+m["Runs per Month"]||0,
+        usersImpacted:+m["Users Impacted"]||0,cycleBefore:+m["Cycle Time Before (days)"]||0,cycleAfter:+m["Cycle Time After (days)"]||0,
+        errorBefore:+m["Error Rate Before (%)"]||0,errorAfter:+m["Error Rate After (%)"]||0,targetUsers:+m["Target Users"]||0,
+        activeUsers:+m["Active Users"]||0,rate:30},
+      log:(lByKey[k]||[]).map(l=>({date:l["Date"]||today(),stage:l["Stage"]||"",note:l["Update Note"]||"",blocker:l["Blocker"]||"",by:l["Logged By"]||""}))
+    };
+  });
+}
+let pendingImport=null;
+function previewImport(incoming){
+  pendingImport=incoming;
+  let added=0,updated=0;
+  incoming.forEach(n=>{
+    const match=DATA.ideas.find(x=> (n.id&&x.id===n.id) || x.title.toLowerCase()===n.title.toLowerCase());
+    if(match) updated++; else added++;
+  });
+  document.getElementById("importPreview").innerHTML=`
+    <div class="note">Preview: <b>${added} new</b>, <b>${updated} updated</b>, ${incoming.length} total rows.</div>
+    <button class="btn" onclick="applyImport()">Apply merge</button>
+    <button class="btn sec" onclick="cancelImport()">Cancel</button>`;
+}
+function applyImport(){
+  pendingImport.forEach(n=>{
+    let match=DATA.ideas.find(x=> (n.id&&x.id===n.id) || x.title.toLowerCase()===n.title.toLowerCase());
+    if(match){ n.log = (n.log&&n.log.length)?n.log:match.log; n.id=match.id; Object.assign(match,n); }
+    else { if(!n.id) n.id=nextId(); if(!n.log||!n.log.length) n.log=[{date:today(),stage:n.stage,note:"Imported.",blocker:"",by:"Import"}]; DATA.ideas.push(n); }
+  });
+  persist(); buildFilters(); renderAll();
+  document.getElementById("importPreview").innerHTML=`<div class="note">Import applied. Now Export JSON and commit data/ideas.json.</div>`;
+  document.getElementById("importFile").value="";
+  pendingImport=null;
+}
+function cancelImport(){ pendingImport=null; document.getElementById("importPreview").innerHTML=""; document.getElementById("importFile").value=""; }
+
+/* ============ EXPORT / TEMPLATES ============ */
+function exportJson(){
+  DATA.meta=DATA.meta||{}; DATA.meta.lastUpdated=today();
+  download("ideas.json", JSON.stringify(DATA,null,2), "application/json");
+}
+function exportExcel(){
+  const wb=XLSX.utils.book_new();
+  const ideas=DATA.ideas.map(i=>({ID:i.id,"Idea Title":i.title,"Idea Lead":i.lead||i.owner||"",Owner:i.owner||"","Team Members":splitMembers(i.teamMembers).join("\n"),"Parent ID":i.parent||"","Team/Sub-team":i.team,Domain:i.domain,
+    "Detailed Description":i.description,Horizon:i.horizon,"Tools Used":i.tools,Stage:i.stage,Priority:i.priority,SME:i.sme,
+    Champions:i.champions,"Due Date":i.dueDate,"Next Step":i.nextStep,Updates:i.updates,"Priority Score":calcScore(i.score)}));
+  const metrics=DATA.ideas.map(i=>{const c=calcMetrics(i.metrics);const m=i.metrics||{};return {ID:i.id,"Idea Title":i.title,
+    "Hours Before (per run)":m.hoursBefore,"Hours After (per run)":m.hoursAfter,"Runs per Month":m.runsPerMonth,"Users Impacted":m.usersImpacted,
+    "Cycle Time Before (days)":m.cycleBefore,"Cycle Time After (days)":m.cycleAfter,"Error Rate Before (%)":m.errorBefore,"Error Rate After (%)":m.errorAfter,
+    "Target Users":m.targetUsers,"Active Users":m.activeUsers,
+    "% Effort Reduction":c.pctEffort,"Hours Saved/Year":c.hrsYear,"Adoption %":c.adoption};});
+  const log=[]; DATA.ideas.forEach(i=>(i.log||[]).forEach(l=>log.push({ID:i.id,"Idea Title":i.title,Date:l.date,Stage:l.stage,"Update Note":l.note,Blocker:l.blocker,"Logged By":l.by})));
+  const teamRows=[];
+  DATA.ideas.forEach(i=>{ splitMembers(i.teamMembers).forEach(mb=>teamRows.push({Team:i.team||i.title,Member:mb})); });
+  (DATA.teams||[]).forEach(t=>(t.members&&t.members.length?t.members:[""]).forEach(mb=>teamRows.push({Team:t.name,Member:mb})));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(ideas),"Ideas");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(metrics),"Metrics");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(log.length?log:[{ID:"",Note:""}]),"Progress Log");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(teamRows.length?teamRows:[{Team:"",Member:""}]),"Teams");
+  XLSX.writeFile(wb,"CTL-AI-Ideas-Export.xlsx");
+}
+function downloadExcelTemplate(){
+  const wb=XLSX.utils.book_new();
+  const ideas=[{ID:"","Idea Title":"AI Code Review Assistant","Idea Lead":"Jane Doe",Owner:"Jane Doe","Team Members":"Jane Doe\nJohn Roe","Parent ID":"","Team/Sub-team":"Salesforce Eng",Domain:"Salesforce",
+    "Detailed Description":"Scan Apex/LWC/SOQL and comment on PRs with fixes.",Horizon:"H2 Workflow AI","Tools Used":"Cline, Code Analyzer",
+    Stage:"Building",Priority:"High",SME:"John SME",Champions:"Champ A","Due Date":"2026-10-10","Next Step":"Prototype PR scan",Updates:"Kickoff done"}];
+  const metrics=[{ID:"","Idea Title":"AI Code Review Assistant","Hours Before (per run)":2,"Hours After (per run)":0.5,"Runs per Month":60,
+    "Users Impacted":20,"Cycle Time Before (days)":1,"Cycle Time After (days)":0.5,"Error Rate Before (%)":25,"Error Rate After (%)":10,
+    "Target Users":25,"Active Users":0}];
+  const log=[{ID:"","Idea Title":"AI Code Review Assistant",Date:today(),Stage:"Building","Update Note":"Kickoff","Blocker":"","Logged By":"Jane Doe"}];
+  const teams=[{Team:"Salesforce Eng",Member:"Jane Doe"},{Team:"Salesforce Eng",Member:"John Roe"}];
+  const instr=[
+    {Field:"HOW TO USE",Guidance:"Fill the Ideas tab (required) and Metrics tab (for value). Progress Log and Teams optional. Send file back to your AI Innovation Lead."},
+    {Field:"ID",Guidance:"Leave blank for new ideas (auto-assigned). Keep the same ID when updating an existing idea."},
+    {Field:"Domain",Guidance:"Salesforce | Beyond-SF | Delivery Lifecycle | Enablement | Process Innovation"},
+    {Field:"Horizon",Guidance:"H1 Productivity | H2 Workflow AI | H3 Transformation"},
+    {Field:"Stage",Guidance:"Backlog | Prioritized | Committed | Building | Validation | Pilot | Adopted | Scaled"},
+    {Field:"Priority",Guidance:"High | Medium | Low"},
+    {Field:"Metrics",Guidance:"Enter raw hours/counts. The portal auto-calculates % reduction, hours saved/year and adoption %."},
+    {Field:"Parent ID",Guidance:"Optional. To make an idea a sub-idea, put the parent idea's ID (e.g. IDEA-011) here. On the Pipeline it renders nested under its parent card. Leave blank for a top-level idea."},
+    {Field:"Team Members",Guidance:"On the Ideas tab, put team members in the 'Team Members' column - one name per line within the cell. The portal reads them dynamically and shows them per idea (Owner = idea owner)."},
+    {Field:"Teams",Guidance:"Optional roster tab. One row per member. Columns: Team, Member. Add a team once per member on its own row."},
+    {Field:"Golden rule",Guidance:"Bring a PROCESS/problem, not just an AI tool. Every idea needs an owner, due date and a measurable outcome."}
+  ];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(ideas),"Ideas");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(metrics),"Metrics");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(log),"Progress Log");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(teams),"Teams");
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(instr),"Instructions");
+  XLSX.writeFile(wb,"CTL-AI-Idea-Intake-Template.xlsx");
+}
+function downloadCsv(which){
+  if(which==="ideas") download("Ideas-template.csv","ID,Idea Title,Idea Lead,Owner,Team Members,Parent ID,Team/Sub-team,Domain,Detailed Description,Horizon,Tools Used,Stage,Priority,SME,Champions,Due Date,Next Step,Updates\n","text/csv");
+  else download("Metrics-template.csv","ID,Idea Title,Hours Before (per run),Hours After (per run),Runs per Month,Users Impacted,Cycle Time Before (days),Cycle Time After (days),Error Rate Before (%),Error Rate After (%),Target Users,Active Users\n","text/csv");
+}
+function resetToSeed(){ if(!confirm("Reset to seed data? This clears local edits."))return; localStorage.removeItem("ctl_ai_ideas"); location.reload(); }
+
+/* ============ HELPERS ============ */
+function val(id){ const e=document.getElementById(id); return e?e.value.trim():""; }
+function esc(s){ return (s==null?"":String(s)).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+function attr(s){ return (s==null?"":String(s)).replace(/"/g,"&quot;"); }
+function sel(id,arr,cur){ return `<select id="${id}">`+arr.map(a=>`<option ${a===cur?'selected':''}>${a}</option>`).join("")+`</select>`; }
+function fmt(n){ n=Math.round(n||0); return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function download(name,content,type){ const b=new Blob([content],{type}); const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download=name; a.click(); URL.revokeObjectURL(u); }
+function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function resizeCanvas(c){ const dpr=window.devicePixelRatio||1; const w=c.clientWidth||400; c.width=w*dpr; c.height=(c.getAttribute("height")||220)*dpr; c.getContext("2d").scale(dpr,dpr); c.style.height=(c.getAttribute("height")||220)+"px"; c.width=w; c.height=(c.getAttribute("height")||220); }
+window.addEventListener("resize",()=>{ if(document.getElementById("view-dashboard").classList.contains("active")) renderDashboard(); });
+
+/* ============ GO ============ */
+loadData();
+</script>
+</body>
+</html>
