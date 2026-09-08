@@ -1,0 +1,3 @@
+ID,Idea Title,Owner,Team/Sub-team,Team Members,Domain,Detailed Description,Horizon,Tools Used,Stage,Priority,SME,Champions,Due Date,Next Step,Updates
+,AI Code Review Assistant,Jane Doe,Salesforce Eng,"Jane Doe
+John Roe",Salesforce,"Scan Apex/LWC/SOQL and comment on PRs with fixes.",H2 Workflow AI,"Cline, Code Analyzer",Building,High,John SME,Champ A,2026-10-10,Prototype PR scan,Kickoff done
