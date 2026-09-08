@@ -1,0 +1,2 @@
+ID,Idea Title,Hours Before (per run),Hours After (per run),Runs per Month,Users Impacted,Cycle Time Before (days),Cycle Time After (days),Error Rate Before (%),Error Rate After (%),Target Users,Active Users
+,AI Code Review Assistant,2,0.5,60,20,1,0.5,25,10,25,0
